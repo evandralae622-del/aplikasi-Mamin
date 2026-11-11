@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aplikasi Menu MAMIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { brand: { light: '#fef3c7', DEFAULT: '#f59e0b', dark: '#b45309' } } }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f3f4f6; display: flex; justify-content: center; margin: 0; font-family: sans-serif; }
+        #app-container { width: 100%; max-width: 450px; background-color: #fff; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .app-screen { width: 100%; height: 100vh; overflow-y: auto; position: absolute; top: 0; left: 0; background-color: #fff; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        /* Efek bergerigi untuk ujung struk kertas */
+        .receipt-edge {
+            background-image: radial-gradient(circle at 10px 0, transparent 10px, #ffffff 11px);
+            background-size: 20px 20px;
+            background-repeat: repeat-x;
+            height: 20px; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- 1. HALAMAN LOGIN -->
+    <div id="screen-login" class="app-screen" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; text-align: center; z-index: 50;">
+        <img src="gambar1.png" alt="Logo Mamin" class="w-48 h-48 object-contain mb-6 rounded-full border-4 border-brand bg-white" onerror="this.src='https://via.placeholder.com/200?text=Logo+MAMIN'">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Selamat Datang di MAMIN</h1>
+        <p class="text-gray-500 mb-8">Makan • Minum • Nikmat!</p>
+        <div class="w-full bg-brand-light p-6 rounded-2xl">
+            <label class="block text-left text-sm font-semibold text-gray-700 mb-2">Siapa nama Anda?</label>
+            <input type="text" id="customer-name" placeholder="Masukkan nama..." class="w-full p-3 rounded-lg border border-brand focus:outline-none focus:ring-2 focus:ring-brand mb-4">
+            <button onclick="login()" class="w-full bg-brand text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">Mulai Pesan</button>
+        </div>
+    </div>
+
+    <!-- 2. HALAMAN MENU -->
+    <div id="screen-menu" class="app-screen" style="display: none; padding-bottom: 6rem; z-index: 40;">
+        <div class="sticky top-0 z-20 bg-white shadow-sm px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="gambar1.png" alt="Logo" class="w-10 h-10 object-cover rounded-full border border-gray-200" onerror="this.src='https://via.placeholder.com/50?text=Logo'">
+                <div>
+                    <h2 class="font-bold text-lg leading-tight">MAMIN</h2>
+                    <p class="text-xs text-brand-dark font-medium" id="greeting-name">Halo, Pelanggan</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex px-4 py-3 gap-2 overflow-x-auto border-b border-gray-100 sticky top-[64px] bg-white z-20">
+            <button onclick="changeTab('Makanan')" id="tab-Makanan" class="tab-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-brand text-white transition-colors flex-shrink-0">Makanan</button>
+            <button onclick="changeTab('Cemilan')" id="tab-Cemilan" class="tab-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 transition-colors flex-shrink-0">Cemilan</button>
+            <button onclick="changeTab('Minuman')" id="tab-Minuman" class="tab-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 transition-colors flex-shrink-0">Minuman</button>
+        </div>
+
+        <div id="menu-list" class="p-4 flex flex-col gap-4">
+            <!-- Menu dirender otomatis oleh JavaScript -->
+        </div>
+
+        <!-- Floating Cart -->
+        <div id="floating-cart" class="fixed bottom-0 w-full max-w-[450px] p-4 bg-white border-t shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] hidden z-30" style="left: 50%; transform: translateX(-50%);">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex flex-col">
+                    <span class="text-sm text-gray-500">Total Harga</span>
+                    <span class="text-lg font-bold text-brand-dark" id="cart-total">Rp 0</span>
+                </div>
+                <div class="text-sm font-semibold bg-brand-light text-brand-dark px-3 py-1 rounded-lg"><span id="cart-count">0</span> Item</div>
+            </div>
+            <button onclick="showCheckout()" class="w-full bg-brand text-white font-bold py-3 rounded-lg shadow active:scale-95 transition-transform">Lanjut Pembayaran</button>
+        </div>
+    </div>
+
+    <!-- 3. HALAMAN CHECKOUT -->
+    <div id="screen-checkout" class="app-screen bg-gray-50" style="display: none; padding-bottom: 5rem; z-index: 60;">
+        <div class="bg-white px-4 py-3 flex items-center gap-3 shadow-sm sticky top-0 z-20">
+            <button onclick="switchScreen('screen-menu')" class="p-2 rounded-full bg-gray-100"><span class="text-xl">←</span></button>
+            <h2 class="font-bold text-lg">Konfirmasi Pesanan</h2>
+        </div>
+        <div class="p-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h3 class="font-bold mb-3 border-b pb-2">Rincian Pesanan</h3>
+                <div id="checkout-items" class="flex flex-col gap-2 mb-3"></div>
+                <div class="flex justify-between font-bold text-lg pt-2 border-t">
+                    <span>Total</span>
+                    <span id="checkout-total-price" class="text-brand-dark">Rp 0</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h3 class="font-bold mb-3">Pilih Metode Pembayaran</h3>
+                <label class="flex items-center justify-between p-3 border rounded-lg mb-2 cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-brand-light">
+                    <div class="flex items-center gap-3"><span class="text-2xl">💵</span><span class="font-semibold">Tunai (Cash)</span></div>
+                    <input type="radio" name="payment" value="Tunai" class="w-5 h-5 accent-brand" checked onchange="toggleQRIS(false)">
+                </label>
+                <label class="flex items-center justify-between p-3 border rounded-lg cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-brand-light">
+                    <div class="flex items-center gap-3"><span class="text-2xl">📱</span><span class="font-semibold">QRIS (Scan)</span></div>
+                    <input type="radio" name="payment" value="QRIS" class="w-5 h-5 accent-brand" onchange="toggleQRIS(true)">
+                </label>
+            </div>
+            <div id="qris-container" class="bg-white rounded-xl p-4 shadow-sm mb-4 hidden text-center">
+                <h3 class="font-bold mb-2">Scan QRIS</h3>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=MAMIN" class="mx-auto w-48 h-48 border-2 p-2">
+            </div>
+        </div>
+        <div class="fixed bottom-0 w-full max-w-[450px] p-4 bg-white border-t z-20" style="left: 50%; transform: translateX(-50%);">
+            <button onclick="processOrder()" class="w-full bg-brand text-white font-bold py-3 rounded-lg shadow-lg active:scale-95 transition-transform">Pesan Sekarang</button>
+        </div>
+    </div>
+
+    <!-- 4. HALAMAN SUKSES DENGAN STRUK -->
+    <div id="screen-success" class="app-screen bg-brand" style="display: none; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; z-index: 70;">
+        <div class="text-white text-center mb-6 mt-10">
+            <div class="text-5xl mb-2 bg-white text-brand inline-block p-4 rounded-full shadow-lg">✅</div>
+            <h2 class="text-2xl font-bold">Pesanan Berhasil!</h2>
+            <p class="opacity-90">Terima kasih telah memesan.</p>
+        </div>
+
+        <!-- STRUK KERTAS DIGITAL -->
+        <div class="bg-white w-full max-w-[320px] rounded-t-lg shadow-2xl p-5 relative font-mono text-sm text-gray-800">
+            <div class="text-center mb-4 border-b border-dashed border-gray-300 pb-3">
+                <h3 class="font-bold text-lg uppercase tracking-wider">MAMIN</h3>
+                <p class="text-xs text-gray-500">Makan • Minum • Nikmat!</p>
+                <p class="text-xs mt-1" id="receipt-date"></p>
+            </div>
+            <div class="mb-3 text-xs">
+                <p>Pelanggan : <span id="receipt-name" class="font-bold"></span></p>
+                <p>Pembayaran: <span id="receipt-payment" class="font-bold"></span></p>
+            </div>
+            <div id="receipt-items" class="border-t border-b border-dashed border-gray-300 py-3 mb-3 flex flex-col gap-1 text-xs"></div>
+            <div class="flex justify-between font-bold text-base mb-4">
+                <span>TOTAL</span>
+                <span id="receipt-total">Rp 0</span>
+            </div>
+            <div class="text-center text-xs text-gray-500 italic">
+                <p id="receipt-instruction"></p>
+            </div>
+        </div>
+        <div class="receipt-edge max-w-[320px] shadow-2xl mb-8"></div>
+
+        <button onclick="resetApp()" class="px-8 py-3 bg-white text-brand font-bold rounded-full shadow-lg active:scale-95 transition-transform mb-10">Pesan Lagi</button>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // EDIT NAMA FILE FOTO MENU ANDA DI SINI
+    // Pastikan tulisan di dalam tanda kutip sama persis dengan nama file di VS Code
+    // =========================================================================
+       const menuData = [
+        // MAKANAN
+        { id: 'm1', name: 'Tinutuan', price: 25000, category: 'Makanan', image: 'gambar2.png' },
+        { id: 'm2', name: 'Nasi Kuning Manado', price: 20000, category: 'Makanan', image: 'gambar3.png' },
+        { id: 'm3', name: 'Ikang Woku Belanga', price: 45000, category: 'Makanan', image: 'gambar4.jpeg' },
+        { id: 'm4', name: 'Sayur Bunga Pepaya', price: 20000, category: 'Makanan', image: 'gambar5.jpeg' },
+        { id: 'm5', name: 'Cakalang Fufu', price: 40000, category: 'Makanan', image: 'gambar6.jpeg' },
+        { id: 'm6', name: 'Sayur Paku', price: 20000, category: 'Makanan', image: 'gambar7.jpeg' },
+        { id: 'm7', name: 'Ayam Rica - Rica', price: 35000, category: 'Makanan', image: 'gambar8.jpeg' },
+        
+        // CEMILAN
+        { id: 'c1', name: 'Perkedel Milu', price: 18000, category: 'Cemilan', image: 'gambar9.jpeg' },
+        { id: 'c2', name: 'Pisang Roa', price: 15000, category: 'Cemilan', image: 'gambar15.jpeg' },
+        { id: 'c3', name: 'Panada', price: 10000, category: 'Cemilan', image: 'gambar11.jpeg' },
+
+        // MINUMAN
+        { id: 'd1', name: 'Es Kacang Merah', price: 15000, category: 'Minuman', image: 'gambar10.jpeg' },
+        { id: 'd2', name: 'Es Kacang Tanah', price: 15000, category: 'Minuman', image: 'gambar13.jpeg' },
+        { id: 'd3', name: 'Air Mineral', price: 5000, category: 'Minuman', image: 'gambar12.jpg' }, 
+        { id: 'd4', name: 'Es Manis', price: 5000, category: 'Minuman', image: 'gambar14.jpeg' } 
+    ];
+
+    let cart = {};
+    let currentCategory = 'Makanan';
+    let customerName = '';
+
+    function formatRp(angka) { return 'Rp ' + angka.toLocaleString('id-ID'); }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.app-screen').forEach(el => el.style.display = 'none');
+        document.getElementById(screenId).style.display = (screenId === 'screen-login' || screenId === 'screen-success') ? 'flex' : 'block';
+    }
+
+    function login() {
+        const input = document.getElementById('customer-name').value.trim();
+        if (input === '') { alert('Masukkan nama Anda.'); return; }
+        customerName = input;
+        document.getElementById('greeting-name').innerText = `Halo, ${customerName}`;
+        renderMenu();
+        switchScreen('screen-menu');
+    }
+
+    function changeTab(category) {
+        currentCategory = category;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-brand', 'text-white');
+            btn.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        const activeBtn = document.getElementById(`tab-${category}`);
+        activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+        activeBtn.classList.add('bg-brand', 'text-white');
+        renderMenu();
+    }
+
+    function renderMenu() {
+        const list = document.getElementById('menu-list');
+        list.innerHTML = '';
+        const filteredMenu = menuData.filter(m => m.category === currentCategory);
+        
+        filteredMenu.forEach(item => {
+            const qty = cart[item.id] || 0;
+            const card = document.createElement('div');
+            card.className = "flex bg-white p-3 rounded-xl shadow-sm border border-gray-100 gap-4";
+            card.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" class="w-24 h-24 object-cover rounded-lg bg-gray-200" onerror="this.src='https://via.placeholder.com/150?text=Foto'">
+                <div class="flex flex-col justify-between flex-1">
+                    <div>
+                        <h3 class="font-bold text-gray-800 leading-tight">${item.name}</h3>
+                        <p class="text-brand font-semibold text-sm mt-1">${formatRp(item.price)}</p>
+                    </div>
+                    <div class="flex items-center justify-end gap-3 mt-2">
+                        ${qty > 0 ? `<button onclick="updateCart('${item.id}', -1)" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 font-bold">-</button><span class="font-bold w-4 text-center">${qty}</span>` : ''}
+                        <button onclick="updateCart('${item.id}', 1)" class="${qty > 0 ? 'w-8 h-8 flex items-center justify-center rounded-full bg-brand text-white font-bold' : 'px-4 py-1.5 rounded-full bg-brand text-white text-sm font-bold'}">${qty > 0 ? '+' : 'Tambah'}</button>
+                    </div>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function updateCart(id, change) {
+        if (!cart[id]) cart[id] = 0;
+        cart[id] += change;
+        if (cart[id] <= 0) delete cart[id];
+        renderMenu();
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        const cartEl = document.getElementById('floating-cart');
+        let totalQty = 0; let totalPrice = 0;
+        for (const [id, qty] of Object.entries(cart)) {
+            const item = menuData.find(m => m.id === id);
+            if (item) { totalQty += qty; totalPrice += (item.price * qty); }
+        }
+        if (totalQty > 0) {
+            cartEl.classList.remove('hidden');
+            document.getElementById('cart-count').innerText = totalQty;
+            document.getElementById('cart-total').innerText = formatRp(totalPrice);
+        } else {
+            cartEl.classList.add('hidden');
+        }
+    }
+
+    function showCheckout() {
+        const checkoutList = document.getElementById('checkout-items');
+        checkoutList.innerHTML = '';
+        let totalPrice = 0;
+        for (const [id, qty] of Object.entries(cart)) {
+            const item = menuData.find(m => m.id === id);
+            if (item) {
+                totalPrice += (item.price * qty);
+                checkoutList.innerHTML += `<div class="flex justify-between text-sm mb-1"><span>${qty}x ${item.name}</span><span class="font-semibold">${formatRp(item.price * qty)}</span></div>`;
+            }
+        }
+        document.getElementById('checkout-total-price').innerText = formatRp(totalPrice);
+        switchScreen('screen-checkout');
+    }
+
+    function toggleQRIS(show) {
+        document.getElementById('qris-container').classList.toggle('hidden', !show);
+    }
+
+    function processOrder() {
+        const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+        
+        // Memasukkan data ke dalam Struk
+        document.getElementById('receipt-name').innerText = customerName;
+        document.getElementById('receipt-payment').innerText = paymentMethod;
+        document.getElementById('receipt-date').innerText = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+        const receiptItems = document.getElementById('receipt-items');
+        receiptItems.innerHTML = '';
+        let totalPrice = 0;
+
+        for (const [id, qty] of Object.entries(cart)) {
+            const item = menuData.find(m => m.id === id);
+            if (item) {
+                totalPrice += (item.price * qty);
+                receiptItems.innerHTML += `<div class="flex justify-between"><span class="pr-2">${item.name} (x${qty})</span><span>${formatRp(item.price * qty)}</span></div>`;
+            }
+        }
+        document.getElementById('receipt-total').innerText = formatRp(totalPrice);
+        document.getElementById('receipt-instruction').innerText = (paymentMethod === 'QRIS') ? "* Mohon tunjukkan bukti transfer QRIS ke kasir." : "* Silakan tunjukkan struk ini dan bayar ke kasir.";
+
+        switchScreen('screen-success');
+    }
+
+    function resetApp() {
+        cart = {};
+        updateCartUI();
+        document.getElementById('customer-name').value = '';
+        switchScreen('screen-login');
+    }
+</script>
+
+</body>
+</html>
